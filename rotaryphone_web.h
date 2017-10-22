@@ -36,10 +36,7 @@ public:
 		_no_leader = true;
 	}
 
-	virtual void init(const Manager& mgr) {
-	}
-
-	virtual ~LabelgossipWeb() {}
+	virtual ~RotaryphoneWeb() {}
 
 	virtual void get_page(const ClientID& cid, int state,
 	                      string* output) {
@@ -65,16 +62,17 @@ public:
 			       const map<string, string>& arguments) {
 		if (name == "reset") {
 			if (cid != _leader) return false;
-
-			unique_lock<mutex> ul(_m);
+			_cids.clear();
+			for (auto &x : _cid_to_answer) {
+				_cids.insert(x.first);
+			}
 			_cid_to_answer.clear();
 			return true;
 		}
 		if (name == "answer") {
 			if (cid == _leader) return false;
 
-			unique_lock<mutex> ul(_m);
-			_cid_to_answer[cid] = atoi(parameters[0]);
+			_cid_to_answer[cid] = atoi(parameters[0].c_str());
 		}
 		return false;
 	}
@@ -84,15 +82,34 @@ public:
 			       const vector<string>& parameters,
 			       const map<string, string>& arguments,
 			       string* output) {
+		if (name == "answer") {
+			if (cid == _leader) {
+				*output = "";
+				return false;
+			}
+			if (!_cid_to_answer.count(cid)) {
+				*output = "";
+				return true;
+			}
+			*output = Logger::stringify("%", _cid_to_answer[cid]);
+			return true;
+		}
 		if (name == "results") {
 			if (cid != _leader) {
 				*output = "";
 				return false;
 			}
 			stringstream ss;
+			ss << _cid_to_answer.size() << endl;
+			ss << _cids.size() << endl;
+
 			map<int, int> tally;
 			for (const auto &x : _cid_to_answer) {
 				tally[x.second]++;
+			}
+
+			for (int i = 0; i < 5; ++i) {
+				ss << tally[i] << endl;
 			}
 
 			*output = ss.str();
@@ -126,38 +143,35 @@ public:
 	}
 
 	virtual void new_client(const ClientID& cid) {
+		_cids.insert(cid);
 	}
 
 	virtual void bye_client(const ClientID& cid) {
+		_cids.erase(cid);
 	}
 
 protected:
-	virtual void is_leader(const ClientID& cid) {
-		unique_lock<mutex> _ul(_m);
-
+	virtual bool set_leader(const ClientID& cid) {
 		if (_no_leader == true) {
 			_leader = cid;
+			Logger::info("leader: %", _leader);
 			_no_leader = false;
+			_cids.erase(cid);
 			return true;
 		}
-		return false;
+		return cid == _leader;
 	}
 
 	virtual void cleanup(const ClientID& cid) {
 	}
 
-	map<ClientID, Format*> _cid_to_format;
-	map<ClientID, vector<string>> _cid_to_format_list;
-	map<ClientID, unique_ptr<Range>> _cid_to_narrow;
-	map<ClientID, unique_ptr<Range>> _cid_to_range;
-	map<string, Format*> _fmts;
-	vector<pair<string, Format*>> _sorted_formats;
-
-	unique_ptr<ScaffoldNode> _node;
-	mutex _m;
-
 	bool _no_leader;
 	ClientID _leader;
+	map<ClientID, int> _cid_to_answer;
+	set<ClientID> _cids;
+
+	unique_ptr<ScaffoldNode> _leader_node;
+	unique_ptr<ScaffoldNode> _follower_node;
 };
 
 }  // namespace minibus

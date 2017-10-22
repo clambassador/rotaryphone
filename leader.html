@@ -1,0 +1,65 @@
+<html>
+
+<head>
+<body>
+<input type="button" value="reset" id="reset" onclick="reset()"><br/>
+<input type="button" value="show" id="show" onclick="nowshow()"><br/>
+<br/>
+
+<h1>There are: <b id="votes"></b> out of <b id="total"></b></h1>
+<canvas id="pad" width="400" height="400"></canvas>
+<script>
+var show = false;
+
+setInterval(get_results, 1000);
+
+function reset() {
+  http_get('/%%cid%%/set/reset?' + fresh());
+  show = false;
+  get_results();
+}
+
+function nowshow() {
+  show = true;
+}
+
+function get_results() {
+  p = http_get('/%%cid%%/get/results?' + fresh());
+  l = p.split('\n');
+  document.getElementById("votes").innerHTML = l[0];
+  document.getElementById("total").innerHTML = l[1];
+  var c = document.getElementById('pad');
+  var ctx = c.getContext("2d");
+  ctx.clearRect(0, 0, c.width, c.height);
+  if (show == true) {
+    for (var i = 2; i < l.length - 1; ++i) {
+      h = parseInt(l[i]) / parseInt(l[0]) * 360;
+      ctx.fillRect(i * 60, c.height - h - 40, 30, h);
+      ctx.font = "35px Arial";
+      if (i == 2) letter = "A";
+      if (i == 3) letter = "B";
+      if (i == 4) letter = "C";
+      if (i == 5) letter = "D";
+      if (i == 6) letter = "E";
+      ctx.fillText(letter, i * 60, c.height);
+    }
+  }
+}
+
+function http_get(url) {
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.overrideMimeType('text/plain');
+    xmlhttp.open("GET", url, false);
+    xmlhttp.send(null);
+    return xmlhttp.responseText;
+}
+
+function fresh() {
+		return "t=" + new Date().getTime();
+}
+
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,53 @@
+<html>
+
+<head>
+<body>
+<h1>Make your choice:</h1>
+<input type="button" value="A" id="send_a" onclick="answer('0')"><br/>
+<input type="button" value="B" id="send_b" onclick="answer('1')"><br/>
+<input type="button" value="C" id="send_c" onclick="answer('2')"><br/>
+<input type="button" value="D" id="send_d" onclick="answer('3')"><br/>
+<input type="button" value="E" id="send_e" onclick="answer('4')"><br/>
+<br/>
+
+<h1>You have selected: <b id="selected"></b></h1>
+
+<script>
+function answer(val) {
+  http_get('/%%cid%%/set/answer/'+ val + '?' + fresh());
+  get_answer();
+}
+setInterval(get_answer, 5000);
+
+function get_answer() {
+  l = http_get('/%%cid%%/get/answer?' + fresh());
+  if (l == '') {
+    document.getElementById("selected").innerHTML = "nothing yet.";
+  } else {
+    if (l == '0') document.getElementById("selected").innerHTML = "A";
+    else if (l == '1') document.getElementById("selected").innerHTML = "B";
+    else if (l == '2') document.getElementById("selected").innerHTML = "C";
+    else if (l == '3') document.getElementById("selected").innerHTML = "D";
+    else if (l == '4') document.getElementById("selected").innerHTML = "E";
+    else document.getElementById("selected").innerHTML = "???";
+  }
+}
+
+function http_get(url) {
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.overrideMimeType('text/plain');
+    xmlhttp.open("GET", url, false);
+    xmlhttp.send(null);
+    return xmlhttp.responseText;
+}
+
+function fresh() {
+		return "t=" + new Date().getTime();
+}
+
+
+</script>
+
+
+</body>
+</html>
