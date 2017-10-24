@@ -17,9 +17,6 @@
 #include "centipede/backend/i_webserver_backend.h"
 #include "centipede/nodes/scaffold_node.h"
 
-#include "labelgossip/format.h"
-#include "labelgossip/manager.h"
-
 using namespace centipede;
 using namespace ib;
 using namespace std;
@@ -155,6 +152,9 @@ protected:
 		if (_no_leader == true) {
 			_leader = cid;
 			Logger::info("leader: %", _leader);
+			ofstream fout("current_leader");
+			fout << _leader << endl << flush;
+			fout.close();
 			_no_leader = false;
 			_cids.erase(cid);
 			return true;
