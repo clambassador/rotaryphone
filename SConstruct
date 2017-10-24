@@ -15,7 +15,7 @@ mains['rotaryphone.cc'] = 'rotaryphone'
 libs = Split("""pthread
 		microhttpd
 	     """)
-env = Environment(CXX="ccache clang++ -I"+ PATH_TO_IB, CPPFLAGS="-D_FILE_OFFSET_BITS=64 -Wall -g --std=c++11 -pthread", LIBS=libs, CPPPATH=PATH_TO_IB)
+env = Environment(CXX="ccache clang++ -I"+ PATH_TO_IB, CPPFLAGS="-D_FILE_OFFSET_BITS=64 -Wall -g -static --std=c++11 -pthread -static -static-libgcc -static-libstdc++", LIBS=libs, CPPPATH=PATH_TO_IB)
 env['ENV']['TERM'] = 'xterm'
 
 

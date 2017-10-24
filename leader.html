@@ -9,29 +9,34 @@
 <h1>There are: <b id="votes"></b> out of <b id="total"></b></h1>
 <canvas id="pad" width="400" height="400"></canvas>
 <script>
-var show = false;
 
-setInterval(get_results, 1000);
+setInterval(looper, 1000);
+
+function looper() {
+  get_results(false);
+}
 
 function reset() {
   http_get('/%%cid%%/set/reset?' + fresh());
-  show = false;
-  get_results();
+  get_results(false);
+  var c = document.getElementById('pad');
+  var ctx = c.getContext("2d");
+  ctx.clearRect(0, 0, c.width, c.height);
 }
 
 function nowshow() {
-  show = true;
+  get_results(true);
 }
 
-function get_results() {
+function get_results(show) {
   p = http_get('/%%cid%%/get/results?' + fresh());
   l = p.split('\n');
   document.getElementById("votes").innerHTML = l[0];
   document.getElementById("total").innerHTML = l[1];
   var c = document.getElementById('pad');
   var ctx = c.getContext("2d");
-  ctx.clearRect(0, 0, c.width, c.height);
   if (show == true) {
+    ctx.clearRect(0, 0, c.width, c.height);
     for (var i = 2; i < l.length - 1; ++i) {
       h = parseInt(l[i]) / parseInt(l[0]) * 360;
       ctx.fillRect(i * 60, c.height - h - 40, 30, h);
